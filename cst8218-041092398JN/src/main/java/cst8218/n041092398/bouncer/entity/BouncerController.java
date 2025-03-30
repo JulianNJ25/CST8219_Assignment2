@@ -1,7 +1,7 @@
-package cst8218.n041092398.lab4;
+package cst8218.n041092398.bouncer.entity;
 
-import cst8218.n041092398.lab4.util.JsfUtil;
-import cst8218.n041092398.lab4.util.PaginationHelper;
+import cst8218.n041092398.bouncer.entity.util.JsfUtil;
+import cst8218.n041092398.bouncer.entity.util.PaginationHelper;
 
 import java.io.Serializable;
 import java.util.ResourceBundle;
@@ -19,35 +19,35 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
 import jakarta.transaction.UserTransaction;
 
-@Named("appUserController")
+@Named("bouncerController")
 @SessionScoped
-public class AppUserController implements Serializable {
+public class BouncerController implements Serializable {
 
     @Resource
     private UserTransaction utx = null;
-    @PersistenceUnit(unitName = "my_persistence_unit")
+    @PersistenceUnit(unitName = "MariaDB")
     private EntityManagerFactory emf = null;
 
-    private AppUser current;
+    private Bouncer current;
     private DataModel items = null;
-    private AppUserJpaController jpaController = null;
+    private BouncerJpaController jpaController = null;
     private PaginationHelper pagination;
     private int selectedItemIndex;
 
-    public AppUserController() {
+    public BouncerController() {
     }
 
-    public AppUser getSelected() {
+    public Bouncer getSelected() {
         if (current == null) {
-            current = new AppUser();
+            current = new Bouncer();
             selectedItemIndex = -1;
         }
         return current;
     }
 
-    private AppUserJpaController getJpaController() {
+    private BouncerJpaController getJpaController() {
         if (jpaController == null) {
-            jpaController = new AppUserJpaController(utx, emf);
+            jpaController = new BouncerJpaController(utx, emf);
         }
         return jpaController;
     }
@@ -58,12 +58,12 @@ public class AppUserController implements Serializable {
 
                 @Override
                 public int getItemsCount() {
-                    return getJpaController().getAppUserCount();
+                    return getJpaController().getBouncerCount();
                 }
 
                 @Override
                 public DataModel createPageDataModel() {
-                    return new ListDataModel(getJpaController().findAppUserEntities(getPageSize(), getPageFirstItem()));
+                    return new ListDataModel(getJpaController().findBouncerEntities(getPageSize(), getPageFirstItem()));
                 }
             };
         }
@@ -76,13 +76,13 @@ public class AppUserController implements Serializable {
     }
 
     public String prepareView() {
-        current = (AppUser) getItems().getRowData();
+        current = (Bouncer) getItems().getRowData();
         selectedItemIndex = pagination.getPageFirstItem() + getItems().getRowIndex();
         return "View";
     }
 
     public String prepareCreate() {
-        current = new AppUser();
+        current = new Bouncer();
         selectedItemIndex = -1;
         return "Create";
     }
@@ -90,7 +90,7 @@ public class AppUserController implements Serializable {
     public String create() {
         try {
             getJpaController().create(current);
-            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("AppUserCreated"));
+            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("BouncerCreated"));
             return prepareCreate();
         } catch (Exception e) {
             JsfUtil.addErrorMessage(e, ResourceBundle.getBundle("/Bundle").getString("PersistenceErrorOccured"));
@@ -99,7 +99,7 @@ public class AppUserController implements Serializable {
     }
 
     public String prepareEdit() {
-        current = (AppUser) getItems().getRowData();
+        current = (Bouncer) getItems().getRowData();
         selectedItemIndex = pagination.getPageFirstItem() + getItems().getRowIndex();
         return "Edit";
     }
@@ -107,7 +107,7 @@ public class AppUserController implements Serializable {
     public String update() {
         try {
             getJpaController().edit(current);
-            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("AppUserUpdated"));
+            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("BouncerUpdated"));
             return "View";
         } catch (Exception e) {
             JsfUtil.addErrorMessage(e, ResourceBundle.getBundle("/Bundle").getString("PersistenceErrorOccured"));
@@ -116,7 +116,7 @@ public class AppUserController implements Serializable {
     }
 
     public String destroy() {
-        current = (AppUser) getItems().getRowData();
+        current = (Bouncer) getItems().getRowData();
         selectedItemIndex = pagination.getPageFirstItem() + getItems().getRowIndex();
         performDestroy();
         recreatePagination();
@@ -140,14 +140,14 @@ public class AppUserController implements Serializable {
     private void performDestroy() {
         try {
             getJpaController().destroy(current.getId());
-            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("AppUserDeleted"));
+            JsfUtil.addSuccessMessage(ResourceBundle.getBundle("/Bundle").getString("BouncerDeleted"));
         } catch (Exception e) {
             JsfUtil.addErrorMessage(e, ResourceBundle.getBundle("/Bundle").getString("PersistenceErrorOccured"));
         }
     }
 
     private void updateCurrentItem() {
-        int count = getJpaController().getAppUserCount();
+        int count = getJpaController().getBouncerCount();
         if (selectedItemIndex >= count) {
             // selected index cannot be bigger than number of items:
             selectedItemIndex = count - 1;
@@ -157,7 +157,7 @@ public class AppUserController implements Serializable {
             }
         }
         if (selectedItemIndex >= 0) {
-            current = getJpaController().findAppUserEntities(1, selectedItemIndex).get(0);
+            current = getJpaController().findBouncerEntities(1, selectedItemIndex).get(0);
         }
     }
 
@@ -189,24 +189,24 @@ public class AppUserController implements Serializable {
     }
 
     public SelectItem[] getItemsAvailableSelectMany() {
-        return JsfUtil.getSelectItems(getJpaController().findAppUserEntities(), false);
+        return JsfUtil.getSelectItems(getJpaController().findBouncerEntities(), false);
     }
 
     public SelectItem[] getItemsAvailableSelectOne() {
-        return JsfUtil.getSelectItems(getJpaController().findAppUserEntities(), true);
+        return JsfUtil.getSelectItems(getJpaController().findBouncerEntities(), true);
     }
 
-    @FacesConverter(forClass = AppUser.class)
-    public static class AppUserControllerConverter implements Converter {
+    @FacesConverter(forClass = Bouncer.class)
+    public static class BouncerControllerConverter implements Converter {
 
         @Override
         public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
             if (value == null || value.length() == 0) {
                 return null;
             }
-            AppUserController controller = (AppUserController) facesContext.getApplication().getELResolver().
-                    getValue(facesContext.getELContext(), null, "appUserController");
-            return controller.getJpaController().findAppUser(getKey(value));
+            BouncerController controller = (BouncerController) facesContext.getApplication().getELResolver().
+                    getValue(facesContext.getELContext(), null, "bouncerController");
+            return controller.getJpaController().findBouncer(getKey(value));
         }
 
         java.lang.Long getKey(String value) {
@@ -226,11 +226,11 @@ public class AppUserController implements Serializable {
             if (object == null) {
                 return null;
             }
-            if (object instanceof AppUser) {
-                AppUser o = (AppUser) object;
+            if (object instanceof Bouncer) {
+                Bouncer o = (Bouncer) object;
                 return getStringKey(o.getId());
             } else {
-                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + AppUser.class.getName());
+                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + Bouncer.class.getName());
             }
         }
 
